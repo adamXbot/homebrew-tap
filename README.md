@@ -109,7 +109,8 @@ There is no CI on `main` today. A syntax gate that runs `ruby -c` and
 `brew readall` on pull requests is proposed in
 [#1](https://github.com/adamXbot/homebrew-tap/pull/1) and has not been merged.
 
-Long stretches with no commits are the intended state for a tap. A package
-definition that still matches its upstream release and that nobody has needed
-to touch is healthy, not abandoned — the thing to watch is the version drift
+Long stretches with no commits are normally fine for a tap — a cask that still
+matches its upstream release needs no attention. That is not the situation here:
+`bananablitz.rb` is behind, so anyone installing from this tap today gets an
+older build than the latest release. The thing to watch is the version drift
 above, not the commit date.
