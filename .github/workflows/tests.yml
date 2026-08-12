@@ -1,0 +1,67 @@
+name: Tap syntax
+
+# Basic syntax gate for this tap. Cask updates land here as pull
+# requests (rendered and opened by the release automation in
+# privacykey/gh-workflows, or written by hand — see README), and this
+# check makes sure every cask/formula still parses and loads before a
+# human reviews the PR.
+#
+# Deliberately basic: `ruby -c` plus `brew readall`. No `brew audit`
+# or `brew style`, so automated bump PRs are never blocked on style
+# nits — reviewers can run those locally when they want the full audit.
+on:
+  pull_request:
+    paths:
+      - "Casks/**"
+      - "Formula/**"
+      - ".github/workflows/tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "Casks/**"
+      - "Formula/**"
+      - ".github/workflows/tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  syntax:
+    name: Cask/formula syntax
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout tap
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Ruby syntax check
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(Casks/*.rb Formula/*.rb)
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo "No cask or formula files found — nothing to check."
+            exit 0
+          fi
+          for f in "${files[@]}"; do
+            echo "ruby -c ${f}"
+            ruby -c "${f}"
+          done
+
+      - name: Load every cask and formula (brew readall)
+        # Symlink the checkout into Homebrew's tap directory so brew can
+        # load this repo as the adamxbot/tap tap, then evaluate every
+        # cask and formula DSL without installing anything.
+        run: |
+          set -euo pipefail
+          tap_dir="$(brew --repository)/Library/Taps/adamxbot/homebrew-tap"
+          mkdir -p "$(dirname "${tap_dir}")"
+          ln -sfn "${GITHUB_WORKSPACE}" "${tap_dir}"
+          brew readall --no-simulate adamxbot/tap
