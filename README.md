@@ -70,7 +70,7 @@ brew untap adamxbot/tap
 
 ### If macOS refuses to open the app
 
-The cask runs a `postflight` that strips `com.apple.quarantine` from the
+The cask runs a `postflight_steps` step that strips `com.apple.quarantine` from the
 installed bundle, and its caveats print the same command in case macOS still
 reports the app as damaged or from an unidentified developer:
 
