@@ -9,13 +9,8 @@ cask "bananablitz" do
 
   app "BananaBlitz.app"
 
-  postflight do
-    system_command "/usr/bin/xattr",
-                  args:         [
-                    "-dr",
-                    "com.apple.quarantine",
-                    "#{appdir}/BananaBlitz.app",
-                  ]
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{appdir}}/BananaBlitz.app"]
   end
 
   caveats <<~EOS
